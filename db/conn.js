@@ -1,5 +1,8 @@
+require('dotenv').config();
+
+
 const { MongoClient } = require("mongodb");
-const Db = 'mongodb+srv://gugapoeta:Renatoquerido88!@cluster0.mkxwkvb.mongodb.net/'
+const Db = process.env.API_URI
 const client = new MongoClient(Db, {
   // useNewUrlParser: true,
   // useUnifiedTopology: true,
