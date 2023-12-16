@@ -12,6 +12,7 @@ const middlewares = require('./middlewares');
 const api = require('./api');
 
 const app = express()
+const port = process.env.PORT || 5000;
 
 
 app.use(morgan('dev'));
@@ -19,8 +20,20 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
+async function connectToDB () {
+  const dbo = require("../db/conn");
+
+  // perform a database connection when server starts
+  await dbo.connectToServer(function (err) {
+    if (err) console.error(err);
+  });
+  console.log(`Server is running on port: ${port}`);
+};
+
+
 app.get('/', async (req, res) => {
   try {
+    await connectToDB();
     const db_connect = dbo.getDb("foodbasket");
 
     // const projection = { title: 1, _id: 0, price: 1 };
