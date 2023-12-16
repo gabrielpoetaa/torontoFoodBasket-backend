@@ -1,9 +1,7 @@
 {
     "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
-    {
-      "env": {
-        "API_URI": "mongodb+srv://gugapoeta:Renatoquerido88!@cluster0.mkxwkvb.mongodb.net/"
-      }
+    "env": {
+      "API_URI": "mongodb+srv://gugapoeta:Renatoquerido88!@cluster0.mkxwkvb.mongodb.net/"
     }
   }
 
