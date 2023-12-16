@@ -84,11 +84,11 @@ app.get('/', async (req, res) => {
     // Combine ALL results from collections
     const combinedResults = [
       ...resultMeatDepartmens,
-      ...resultBakeryDepartments,
-      ...resultProduceDepartments,
-      ...resultCannedAndDryDepartments,
-      ...resultFrozenFoodDepartments,
-      ...resultRefrigeratedFoodSections,
+      // ...resultBakeryDepartments,
+      // ...resultProduceDepartments,
+      // ...resultCannedAndDryDepartments,
+      // ...resultFrozenFoodDepartments,
+      // ...resultRefrigeratedFoodSections,
     ];
 
     // Order result alphabetically
