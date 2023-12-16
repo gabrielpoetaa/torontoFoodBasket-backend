@@ -116,7 +116,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.get('/list', async (req, res) => {
+app.get('/', async (req, res) => {
   try {
     const db_connect = dbo.getDb("foodbasket");
 
