@@ -1,9 +1,12 @@
 const express = require('express');
 const morgan = require('morgan');
 const helmet = require('helmet');
+
 const cors = require('cors');
 const recordRoutes = express.Router();
+
 const dbo = require("../db/conn");
+
 const ObjectId = require("mongodb").ObjectId;
 
 require('dotenv').config();
@@ -113,7 +116,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.get('/', async (req, res) => {
+app.get('/list', async (req, res) => {
   try {
     const db_connect = dbo.getDb("foodbasket");
 
@@ -206,7 +209,6 @@ app.get('/', async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 app.use('/api/v1', api);
 
