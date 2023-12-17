@@ -48,8 +48,8 @@ app.get('/', async (req, res) => {
     const bakeryDepartmentsCollection =
       db_connect.collection("bakerydepartments");
     const resultBakeryDepartments = await bakeryDepartmentsCollection
-      .find({})
-      .toArray();
+    .find({ title: { $ne: '100% Whole Wheat Bread' } })
+    .toArray();
 
     // Query ONLY the title of docs from second collection
     const produceDepartmentsCollection =
@@ -59,23 +59,23 @@ app.get('/', async (req, res) => {
       .toArray();
 
     // Query ONLY the title of docs from second collection
-    const cannedAndDryDepartmentsCollection = db_connect.collection(
-      "cannedanddrydepartments"
-    );
-    const resultCannedAndDryDepartments =
-      await cannedAndDryDepartmentsCollection.find({}).toArray();
+    const cannedAndDryDepartmentsCollection = db_connect.collection("cannedanddrydepartments");
+    const resultCannedAndDryDepartments = await cannedAndDryDepartmentsCollection
+      .find({ title: { $ne: '100% Pure Vegetable Oil' } })
+      .toArray();
+
 
     // Query ONLY the title of docs from second collection
     const frozenFoodDepartments = db_connect.collection(
       "frozenfooddepartments"
     );
     const resultFrozenFoodDepartments = await frozenFoodDepartments
-      .find({})
-      .toArray();
-
+    .find({ url: { $ne: 'https://www.nofrills.ca/unsweetened-frozen-concentrated-pulp-free-orange-j/p/20552223001_EA' } })
+    .toArray();
+      
     // Query ONLY the title of docs from second collection
     const refrigeratedFoodSections = db_connect.collection(
-      "cannedanddrydepartments"
+      "refrigeratedfoodsections"
     );
     const resultRefrigeratedFoodSections = await refrigeratedFoodSections
       .find({})
