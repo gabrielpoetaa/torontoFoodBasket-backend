@@ -126,6 +126,100 @@ app.get('/', async (req, res) => {
   }
 });
 
+app.get('/details/:title', async (req, res) => {
+  try{
+    await connectToDB();
+    const db_connect = dbo.getDb("foodbasket");
+    const collectionNames = [
+      "meatdepartments",
+      "bakerydepartments",
+      "producedepartments",
+      "cannedanddrydepartments",
+      "frozenfooddepartments",
+      "refrigeratedfoodsections",
+    ];
+  
+    const combinedResults = [];
+  
+    for (const collectionName of collectionNames) {
+      const currentCollection = db_connect.collection(collectionName);
+  
+      // Your existing aggregation pipeline
+      const updateField = [
+        {
+          $group: {
+            _id: "$title",
+            lowestPrice: { $min: "$pricePer100g" },
+            totalPrice: { $sum: "$pricePer100g" },
+            count: { $sum: 1 } // Count the number of documents in each group
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            lowestPrice: 1,
+            averagePricePer100g: { $divide: ["$totalPrice", "$count"] }
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            lowestPrice: 1,
+            averagePricePer100g: { $round: ["$averagePricePer100g", 3] }
+          },
+        }
+      ];
+  
+      const resultAggregation = await currentCollection.aggregate(updateField).toArray();
+  
+      // Retrieve and modify all documents in the current collection
+      const resultDocuments = await currentCollection
+      .find({})
+      .sort({ pricePer100g: -1 })
+      .toArray();
+  
+      const combinedResultsForCollection = resultDocuments.map(doc => {
+        const matchingAggregationResult = resultAggregation.find(aggr => aggr._id === doc.title);
+        doc.lowestPricePer100g = matchingAggregationResult ? matchingAggregationResult.lowestPrice : null;
+        doc.averagePricePer100g = matchingAggregationResult ? matchingAggregationResult.averagePricePer100g : null;
+        return doc;
+      });
+  
+      combinedResults.push(...combinedResultsForCollection);
+    }
+  
+    // Order result alphabetically
+    combinedResults.sort((a, b) => a.title.localeCompare(b.title));
+  
+    // Remove duplicated results
+    const uniqueNames = {};
+    const filteredArray = combinedResults.filter((obj) => {
+      if (!uniqueNames[obj.title]) {
+        uniqueNames[obj.title] = true;
+        return true;
+      }
+      return false;
+    });
+  
+    console.log(filteredArray.length + " products in the basket");
+  
+    // IT QUERIES ALL DOCUMENTS, BUT RENDERS ONLY THE FIRST ONE
+    const title = req.params.title;
+    const selectedDocument = filteredArray.find((doc) => doc.title === title);
+  
+    if (!selectedDocument) {
+      res.status(404).json({ error: "Document not found" });
+    } else {
+      res.json(selectedDocument);
+      console.log("User selected: ");
+      console.log(selectedDocument);
+    }
+  }catch (error) {
+    console.error("Error querying collections:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 app.use('/api/v1', api);
 
