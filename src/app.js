@@ -217,6 +217,79 @@ app.get('/details/:title', async (req, res) => {
   }
 });
 
+app.get('/record-count', async (req, res) => {
+  try {
+    await connectToDB();
+    const db_connect = dbo.getDb("foodbasket");
+    const collectionNames = [
+      "meatdepartments",
+      "bakerydepartments",
+      "producedepartments",
+      "cannedanddrydepartments",
+      "frozenfooddepartments",
+      "refrigeratedfoodsections",
+    ];
+
+    let resultAggregation = [];
+    const combinedResults = [];
+
+    for (const collectionName of collectionNames) {
+      const currentCollection = db_connect.collection(collectionName);
+
+      // Check if the savedDate field exists in the documents
+      const hasSavedDateField = await currentCollection.findOne({ date: { $exists: true } });
+
+      if (hasSavedDateField) {
+        // Calculate daysSinceSaved for each document in the collection
+        const result = await currentCollection
+          .aggregate([
+            {
+              $project: {
+                daysSinceSaved: {
+                  $divide: [
+                    {
+                      $subtract: [
+                        new Date(),  // Current date
+                        "$date"  // Document's saved date
+                      ]
+                    },
+                    1000 * 60 * 60 * 24  // Convert milliseconds to days
+                  ]
+                }
+              }
+            }
+          ])
+          .toArray();
+
+        resultAggregation.push(...result);
+
+        // Retrieve and modify all documents in the current collection
+        const resultDocuments = await currentCollection.find({}).toArray();
+
+        combinedResults.push(...resultDocuments);
+      }
+    }
+
+    // Find the document with the maximum daysSinceSaved value
+    const maxDaysDocument = resultAggregation.reduce((maxDoc, currentDoc) => {
+      return currentDoc.daysSinceSaved > maxDoc.daysSinceSaved ? currentDoc : maxDoc;
+    }, { daysSinceSaved: -Infinity }); // Initialize with a very small value
+
+    const roundeddaysCount = Math.ceil(maxDaysDocument.daysSinceSaved);
+
+
+    const combinedResultsFinal = {
+      recordsOfData: combinedResults.length,
+      daysCount: roundeddaysCount
+    };
+
+    res.json(combinedResultsFinal);
+  } catch (error) {
+    console.error("Error querying collections:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 app.use('/api/v1', api);
 
 app.use(middlewares.notFound);
