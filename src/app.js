@@ -47,7 +47,7 @@ app.get('/', async (req, res) => {
     // Query Bakery Department Collection
     const bakeryDepartmentsCollection = db_connect.collection('bakerydepartments');
     const resultBakeryDepartments = await bakeryDepartmentsCollection
-      .find({ title: { $ne: '100% Whole Wheat Bread' } })
+      .find({})
       .toArray();
 
     // Query Produce Department Collection
@@ -59,7 +59,7 @@ app.get('/', async (req, res) => {
     // Query Canned and Dry Department Collection
     const cannedAndDryDepartmentsCollection = db_connect.collection('cannedanddrydepartments');
     const resultCannedAndDryDepartments = await cannedAndDryDepartmentsCollection
-      .find({ title: { $ne: '100% Pure Vegetable Oil' } })
+      .find({})
       .toArray();
 
     // Query Frozen Food Department Collection
