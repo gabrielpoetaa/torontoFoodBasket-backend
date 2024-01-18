@@ -48,7 +48,7 @@ app.get('/', async (req, res) => {
     const bakeryDepartmentsCollection =
       db_connect.collection("bakerydepartments");
     const resultBakeryDepartments = await bakeryDepartmentsCollection
-    .find({ title: { $ne: '100% Whole Wheat Bread' } })
+    .find({})
     .toArray();
 
     // Query ONLY the title of docs from second collection
@@ -61,7 +61,7 @@ app.get('/', async (req, res) => {
     // Query ONLY the title of docs from second collection
     const cannedAndDryDepartmentsCollection = db_connect.collection("cannedanddrydepartments");
     const resultCannedAndDryDepartments = await cannedAndDryDepartmentsCollection
-      .find({ title: { $ne: '100% Pure Vegetable Oil' } })
+      .find({})
       .toArray();
 
 
@@ -219,6 +219,91 @@ app.get('/details/:title', async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+app.get('/price/:title', async (req, res) => {
+  try {
+    const db_connect = dbo.getDb("foodbasket");
+    const allDepartments = [
+      "meatdepartments",
+      "bakerydepartments",
+      "producedepartments",
+      "cannedanddrydepartments",
+      "frozenfooddepartments",
+      "refrigeratedfoodsections",
+    ];
+
+    let combinedResults = [];
+
+    for (const department of allDepartments) {
+      const collection = db_connect.collection(department);
+      const departmentResults = await collection.find({ title: req.params.title }).toArray();
+      combinedResults = [...combinedResults, ...departmentResults];
+    }
+
+    console.log("Total number of documents for title " + req.params.title + ": " + combinedResults.length);
+
+    combinedResults.sort((a, b) => a.title.localeCompare(b.title));
+
+    const uniqueNames = {};
+    const filteredArray = combinedResults.filter((obj) => {
+      if (!uniqueNames[obj.title]) {
+        uniqueNames[obj.title] = true;
+        return true;
+      }
+      return false;
+    });
+
+    const resultWithAvgPricePerMonth = filteredArray.map((product) => {
+      const avgPricePerMonth = calculateAvgPricePerMonth(product, combinedResults);
+      return {
+        ...product,
+        avgPricePerMonth,
+      };
+    });
+
+    res.json(resultWithAvgPricePerMonth);
+  } catch (error) {
+    console.error("Error querying collections:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+
+// Helper function to calculate average pricePer100g for every month
+function calculateAvgPricePerMonth(product, allProducts) {
+  try {
+    const pricesPerMonth = {};
+
+    for (const entry of allProducts) {
+      const date = new Date(entry.date);
+
+      const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+
+      if (!pricesPerMonth[monthYear]) {
+        pricesPerMonth[monthYear] = [];
+      }
+
+      // Only consider entries with the same title
+      if (entry.title === product.title) {
+        pricesPerMonth[monthYear].push(entry.pricePer100g);
+      }
+    }
+
+    const avgPricePerMonth = {};
+
+    for (const [monthYear, prices] of Object.entries(pricesPerMonth)) {
+      const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+      avgPricePerMonth[monthYear] = averagePrice.toFixed(2); // Adjust decimal places if needed
+    }
+
+    return avgPricePerMonth;
+  } catch (error) {
+    console.error("Error calculating average pricePer100g per month:", error);
+    return {};
+  }
+}
+
 
 
 app.use('/api/v1', api);
