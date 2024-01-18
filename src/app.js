@@ -56,41 +56,24 @@ app.get('/', async (req, res) => {
       .find({})
       .toArray();
 
-<<<<<<< HEAD
     // Query ONLY the title of docs from second collection
     const cannedAndDryDepartmentsCollection = db_connect.collection("cannedanddrydepartments");
     const resultCannedAndDryDepartments = await cannedAndDryDepartmentsCollection
       .find({})
       .toArray();
 
-=======
-    // Query Canned and Dry Department Collection
-    const cannedAndDryDepartmentsCollection = db_connect.collection('cannedanddrydepartments');
-    const resultCannedAndDryDepartments = await cannedAndDryDepartmentsCollection
-      .find({})
-      .toArray();
->>>>>>> d531ef710f3a28a8a80188c51881dc20159bd340
 
     // Query Frozen Food Department Collection
     const frozenFoodDepartments = db_connect.collection(
       'frozenfooddepartments',
     );
     const resultFrozenFoodDepartments = await frozenFoodDepartments
-<<<<<<< HEAD
     .find({ url: { $ne: 'https://www.nofrills.ca/unsweetened-frozen-concentrated-pulp-free-orange-j/p/20552223001_EA' } })
     .toArray();
       
     // Query ONLY the title of docs from second collection
     const refrigeratedFoodSections = db_connect.collection(
       "refrigeratedfoodsections"
-=======
-      .find({ url: { $ne: 'https://www.nofrills.ca/unsweetened-frozen-concentrated-pulp-free-orange-j/p/20552223001_EA' } })
-      .toArray();
-
-    // Query Refrigerated Department Collection
-    const refrigeratedFoodSections = db_connect.collection(
-      'refrigeratedfoodsections',
->>>>>>> d531ef710f3a28a8a80188c51881dc20159bd340
     );
     const resultRefrigeratedFoodSections = await refrigeratedFoodSections
       .find({})
