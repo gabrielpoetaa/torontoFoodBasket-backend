@@ -1,13 +1,18 @@
 module.exports = {
   root: true,
-  env: {
-    jest: true,
-  },
-  extends: 'airbnb-base',
+  env: { browser: true, es2020: true },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react-hooks/recommended',
+  ],
+  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['react-refresh'],
   rules: {
-    'no-underscore-dangle': 0,
-    'no-param-reassign': 0,
-    'no-return-assign': 0,
-    camelcase: 0,
+    'react-refresh/only-export-components': [
+      'warn',
+      { allowConstantExport: true },
+    ],
   },
 };
