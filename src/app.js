@@ -49,7 +49,8 @@ app.get('/', async (req, res) => {
                 "Chicken Drumstick",
                 "Free From Boneless Pork Fast Fry Center Chop, Tray Pack",
                 "Boneless Pork Chop Center & Rib, Club Pack", 
-                "Beef Stir-fry Strips Inside Round"
+                "Beef Stir-fry Strips Inside Round", 
+                "Outside Round Steak, Club Pack"
             ]
         }
     })
