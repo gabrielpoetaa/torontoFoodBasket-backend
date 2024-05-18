@@ -81,9 +81,16 @@ app.get('/', async (req, res) => {
       'frozenfooddepartments',
     );
     const resultFrozenFoodDepartments = await frozenFoodDepartments
-    .find({})
-    .toArray();
-      
+    .find({
+      title: {
+          $nin: [
+            "Unsweetened Orange Juice from Concentrate", 
+            "Unsweetened Frozen Concentrated Pulp Free Orange Juice "
+          ]
+      }
+  })
+  .toArray();
+
     // Query ONLY the title of docs from second collection
     const refrigeratedFoodSections = db_connect.collection(
       "refrigeratedfoodsections"
