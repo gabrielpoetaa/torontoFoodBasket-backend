@@ -81,7 +81,7 @@ app.get('/', async (req, res) => {
       'frozenfooddepartments',
     );
     const resultFrozenFoodDepartments = await frozenFoodDepartments
-    .find({ url: { $ne: 'https://www.nofrills.ca/unsweetened-frozen-concentrated-pulp-free-orange-j/p/20552223001_EA' } })
+    .find({})
     .toArray();
       
     // Query ONLY the title of docs from second collection
