@@ -48,7 +48,8 @@ app.get('/', async (req, res) => {
             $nin: [
                 "Chicken Drumstick",
                 "Free From Boneless Pork Fast Fry Center Chop, Tray Pack",
-                "Boneless Pork Chop Center & Rib, Club Pack"
+                "Boneless Pork Chop Center & Rib, Club Pack", 
+                "Beef Stir-fry Strips Inside Round"
             ]
         }
     })
