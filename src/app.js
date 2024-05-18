@@ -43,9 +43,19 @@ app.get('/', async (req, res) => {
 
     // Buscar os documentos, incluindo o documento com title 'pork'
     const resultMeatDepartments = await meatDepartmentsCollection
-        .find({ title: { $ne: "Chicken Drumstick" } })
-        .toArray();
+    .find({
+        title: {
+            $nin: [
+                "Chicken Drumstick",
+                "Free From Boneless Pork Fast Fry Center Chop, Tray Pack",
+                "Boneless Pork Chop Center & Rib, Club Pack"
+            ]
+        }
+    })
+    .toArray();
+
     
+
     // Query Bakery Department Collection
     const bakeryDepartmentsCollection = db_connect.collection('bakerydepartments');
     const resultBakeryDepartments = await bakeryDepartmentsCollection
