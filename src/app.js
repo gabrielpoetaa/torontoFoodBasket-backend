@@ -41,8 +41,9 @@ app.get('/', async (req, res) => {
     // Query Meat Department Collection
     const meatDepartmentsCollection = db_connect.collection('meatdepartments'); // important!!!
     const resultMeatDepartmens = await meatDepartmentsCollection
-      .find({})
-      .toArray();
+    .find({ title: { $ne: "Chicken Drumstick" } })
+    .toArray();
+
 
     // Query Bakery Department Collection
     const bakeryDepartmentsCollection = db_connect.collection('bakerydepartments');
