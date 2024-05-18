@@ -46,17 +46,6 @@ app.get('/', async (req, res) => {
         .find({ title: { $ne: "Chicken Drumstick" } })
         .toArray();
     
-    // Iterar sobre os documentos e formatar o campo pricePer100g se o title for 'pork'
-    resultMeatDepartments.forEach(doc => {
-        if (typeof doc.pricePer100g === 'number') {
-            doc.pricePer100g = parseFloat(doc.pricePer100g.toFixed(2));
-        }
-    });
-    
-    console.log(resultMeatDepartments);
-    
-    
-
     // Query Bakery Department Collection
     const bakeryDepartmentsCollection = db_connect.collection('bakerydepartments');
     const resultBakeryDepartments = await bakeryDepartmentsCollection
