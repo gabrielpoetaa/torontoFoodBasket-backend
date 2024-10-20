@@ -1,28 +1,27 @@
-const express = require('express');
-const morgan = require('morgan');
-const helmet = require('helmet');
-const cors = require('cors');
+const express = require("express");
+const morgan = require("morgan");
+const helmet = require("helmet");
+const cors = require("cors");
 
 const recordRoutes = express.Router();
-const { ObjectId } = require('mongodb');
-const dbo = require('../db/conn');
+const { ObjectId } = require("mongodb");
+const dbo = require("../db/conn");
 
-require('dotenv').config();
+require("dotenv").config();
 
-const middlewares = require('./middlewares');
-const api = require('./api');
+const middlewares = require("./middlewares");
+const api = require("./api");
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-
 async function connectToDB() {
-  const dbo = require('../db/conn');
+  const dbo = require("../db/conn");
 
   // perform a database connection when server starts
   await dbo.connectToServer((err) => {
@@ -31,66 +30,66 @@ async function connectToDB() {
   console.log(`Server is running on port: ${port}`);
 }
 
-app.get('/', async (req, res) => {
+app.get("/", async (req, res) => {
   try {
     await connectToDB();
-    const db_connect = dbo.getDb('foodbasket');
+    const db_connect = dbo.getDb("foodbasket");
 
     // const projection = { title: 1, _id: 0, price: 1 };
 
     // Query Meat Department Collection
-    const meatDepartmentsCollection = db_connect.collection('meatdepartments'); // importante!!!
+    const meatDepartmentsCollection = db_connect.collection("meatdepartments"); // importante!!!
 
     // Buscar os documentos, incluindo o documento com title 'pork'
     const resultMeatDepartments = await meatDepartmentsCollection
-    .find({
+      .find({
         title: {
-            $nin: [
-                "Chicken Drumstick",
-                "Free From Boneless Pork Fast Fry Center Chop, Tray Pack",
-                "Boneless Pork Chop Center & Rib, Club Pack", 
-                "Beef Stir-fry Strips Inside Round", 
-                "Outside Round Steak, Club Pack"
-            ]
-        }
-    })
-    .toArray();
-
-    
+          $nin: [
+            "Chicken Drumstick",
+            "Free From Boneless Pork Fast Fry Center Chop, Tray Pack",
+            "Boneless Pork Chop Center & Rib, Club Pack",
+            "Beef Stir-fry Strips Inside Round",
+            "Outside Round Steak, Club Pack",
+          ],
+        },
+      })
+      .toArray();
 
     // Query Bakery Department Collection
-    const bakeryDepartmentsCollection = db_connect.collection('bakerydepartments');
+    const bakeryDepartmentsCollection =
+      db_connect.collection("bakerydepartments");
     const resultBakeryDepartments = await bakeryDepartmentsCollection
-    .find({})
-    .toArray();
+      .find({})
+      .toArray();
 
     // Query Produce Department Collection
-    const produceDepartmentsCollection = db_connect.collection('producedepartments');
+    const produceDepartmentsCollection =
+      db_connect.collection("producedepartments");
     const resultProduceDepartments = await produceDepartmentsCollection
       .find({})
       .toArray();
 
     // Query ONLY the title of docs from second collection
-    const cannedAndDryDepartmentsCollection = db_connect.collection("cannedanddrydepartments");
-    const resultCannedAndDryDepartments = await cannedAndDryDepartmentsCollection
-      .find({})
-      .toArray();
-
+    const cannedAndDryDepartmentsCollection = db_connect.collection(
+      "cannedanddrydepartments"
+    );
+    const resultCannedAndDryDepartments =
+      await cannedAndDryDepartmentsCollection.find({}).toArray();
 
     // Query Frozen Food Department Collection
     const frozenFoodDepartments = db_connect.collection(
-      'frozenfooddepartments',
+      "frozenfooddepartments"
     );
     const resultFrozenFoodDepartments = await frozenFoodDepartments
-    .find({
-      title: {
+      .find({
+        title: {
           $nin: [
-            "Unsweetened Orange Juice from Concentrate", 
-            "Unsweetened Frozen Concentrated Pulp Free Orange Juice "
-          ]
-      }
-  })
-  .toArray();
+            "Unsweetened Orange Juice from Concentrate",
+            "Unsweetened Frozen Concentrated Pulp Free Orange Juice ",
+          ],
+        },
+      })
+      .toArray();
 
     // Query ONLY the title of docs from second collection
     const refrigeratedFoodSections = db_connect.collection(
@@ -137,25 +136,25 @@ app.get('/', async (req, res) => {
 
     // console.log(filteredArray);
     console.log(`${filteredArray.length} products in the basket`);
-    console.log('Sending response:', filteredArray);
+    console.log("Sending response:", filteredArray);
     res.json(filteredArray);
   } catch (error) {
-    console.error('Error querying collections:', error);
-    res.status(500).send('Internal Server Error');
+    console.error("Error querying collections:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-app.get('/details/:title', async (req, res) => {
+app.get("/details/:title", async (req, res) => {
   try {
     await connectToDB();
-    const db_connect = dbo.getDb('foodbasket');
+    const db_connect = dbo.getDb("foodbasket");
     const collectionNames = [
-      'meatdepartments',
-      'bakerydepartments',
-      'producedepartments',
-      'cannedanddrydepartments',
-      'frozenfooddepartments',
-      'refrigeratedfoodsections',
+      "meatdepartments",
+      "bakerydepartments",
+      "producedepartments",
+      "cannedanddrydepartments",
+      "frozenfooddepartments",
+      "refrigeratedfoodsections",
     ];
 
     const combinedResults = [];
@@ -167,9 +166,9 @@ app.get('/details/:title', async (req, res) => {
       const updateField = [
         {
           $group: {
-            _id: '$title',
-            lowestPrice: { $min: '$pricePer100g' },
-            totalPrice: { $sum: '$pricePer100g' },
+            _id: "$title",
+            lowestPrice: { $min: "$pricePer100g" },
+            totalPrice: { $sum: "$pricePer100g" },
             count: { $sum: 1 }, // Count the number of documents in each group
           },
         },
@@ -177,19 +176,21 @@ app.get('/details/:title', async (req, res) => {
           $project: {
             _id: 1,
             lowestPrice: 1,
-            averagePricePer100g: { $divide: ['$totalPrice', '$count'] },
+            averagePricePer100g: { $divide: ["$totalPrice", "$count"] },
           },
         },
         {
           $project: {
             _id: 1,
             lowestPrice: 1,
-            averagePricePer100g: { $round: ['$averagePricePer100g', 3] },
+            averagePricePer100g: { $round: ["$averagePricePer100g", 3] },
           },
         },
       ];
 
-      const resultAggregation = await currentCollection.aggregate(updateField).toArray();
+      const resultAggregation = await currentCollection
+        .aggregate(updateField)
+        .toArray();
 
       // Retrieve and modify all documents in the current collection
       const resultDocuments = await currentCollection
@@ -198,9 +199,15 @@ app.get('/details/:title', async (req, res) => {
         .toArray();
 
       const combinedResultsForCollection = resultDocuments.map((doc) => {
-        const matchingAggregationResult = resultAggregation.find((aggr) => aggr._id === doc.title);
-        doc.lowestPricePer100g = matchingAggregationResult ? matchingAggregationResult.lowestPrice : null;
-        doc.averagePricePer100g = matchingAggregationResult ? matchingAggregationResult.averagePricePer100g : null;
+        const matchingAggregationResult = resultAggregation.find(
+          (aggr) => aggr._id === doc.title
+        );
+        doc.lowestPricePer100g = matchingAggregationResult
+          ? matchingAggregationResult.lowestPrice
+          : null;
+        doc.averagePricePer100g = matchingAggregationResult
+          ? matchingAggregationResult.averagePricePer100g
+          : null;
         return doc;
       });
 
@@ -227,19 +234,19 @@ app.get('/details/:title', async (req, res) => {
     const selectedDocument = filteredArray.find((doc) => doc.title === title);
 
     if (!selectedDocument) {
-      res.status(404).json({ error: 'Document not found' });
+      res.status(404).json({ error: "Document not found" });
     } else {
       res.json(selectedDocument);
-      console.log('User selected: ');
+      console.log("User selected: ");
       console.log(selectedDocument);
     }
   } catch (error) {
-    console.error('Error querying collections:', error);
-    res.status(500).send('Internal Server Error');
+    console.error("Error querying collections:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-app.get('/record-count', async (req, res) => {
+app.get("/record-count", async (req, res) => {
   try {
     await connectToDB();
     const db_connect = dbo.getDb("foodbasket");
@@ -259,7 +266,9 @@ app.get('/record-count', async (req, res) => {
       const currentCollection = db_connect.collection(collectionName);
 
       // Check if the savedDate field exists in the documents
-      const hasSavedDateField = await currentCollection.findOne({ date: { $exists: true } });
+      const hasSavedDateField = await currentCollection.findOne({
+        date: { $exists: true },
+      });
 
       if (hasSavedDateField) {
         // Calculate daysSinceSaved for each document in the collection
@@ -271,15 +280,15 @@ app.get('/record-count', async (req, res) => {
                   $divide: [
                     {
                       $subtract: [
-                        new Date(),  // Current date
-                        "$date"  // Document's saved date
-                      ]
+                        new Date(), // Current date
+                        "$date", // Document's saved date
+                      ],
                     },
-                    1000 * 60 * 60 * 24  // Convert milliseconds to days
-                  ]
-                }
-              }
-            }
+                    1000 * 60 * 60 * 24, // Convert milliseconds to days
+                  ],
+                },
+              },
+            },
           ])
           .toArray();
 
@@ -293,16 +302,20 @@ app.get('/record-count', async (req, res) => {
     }
 
     // Find the document with the maximum daysSinceSaved value
-    const maxDaysDocument = resultAggregation.reduce((maxDoc, currentDoc) => {
-      return currentDoc.daysSinceSaved > maxDoc.daysSinceSaved ? currentDoc : maxDoc;
-    }, { daysSinceSaved: -Infinity }); // Initialize with a very small value
+    const maxDaysDocument = resultAggregation.reduce(
+      (maxDoc, currentDoc) => {
+        return currentDoc.daysSinceSaved > maxDoc.daysSinceSaved
+          ? currentDoc
+          : maxDoc;
+      },
+      { daysSinceSaved: -Infinity }
+    ); // Initialize with a very small value
 
     const roundeddaysCount = Math.ceil(maxDaysDocument.daysSinceSaved);
 
-
     const combinedResultsFinal = {
       recordsOfData: combinedResults.length,
-      daysCount: roundeddaysCount
+      daysCount: roundeddaysCount,
     };
 
     res.json(combinedResultsFinal);
@@ -312,7 +325,7 @@ app.get('/record-count', async (req, res) => {
   }
 });
 
-app.get('/price/:title', async (req, res) => {
+app.get("/price/:title", async (req, res) => {
   try {
     const db_connect = dbo.getDb("foodbasket");
     const allDepartments = [
@@ -328,11 +341,18 @@ app.get('/price/:title', async (req, res) => {
 
     for (const department of allDepartments) {
       const collection = db_connect.collection(department);
-      const departmentResults = await collection.find({ title: req.params.title }).toArray();
+      const departmentResults = await collection
+        .find({ title: req.params.title })
+        .toArray();
       combinedResults = [...combinedResults, ...departmentResults];
     }
 
-    console.log("Total number of documents for title " + req.params.title + ": " + combinedResults.length);
+    console.log(
+      "Total number of documents for title " +
+        req.params.title +
+        ": " +
+        combinedResults.length
+    );
 
     combinedResults.sort((a, b) => a.title.localeCompare(b.title));
 
@@ -346,7 +366,10 @@ app.get('/price/:title', async (req, res) => {
     });
 
     const resultWithAvgPricePerMonth = filteredArray.map((product) => {
-      const avgPricePerMonth = calculateAvgPricePerMonth(product, combinedResults);
+      const avgPricePerMonth = calculateAvgPricePerMonth(
+        product,
+        combinedResults
+      );
       return {
         ...product,
         avgPricePerMonth,
@@ -360,8 +383,6 @@ app.get('/price/:title', async (req, res) => {
   }
 });
 
-
-
 // Helper function to calculate average pricePer100g for every month
 function calculateAvgPricePerMonth(product, allProducts) {
   try {
@@ -370,7 +391,9 @@ function calculateAvgPricePerMonth(product, allProducts) {
     for (const entry of allProducts) {
       const date = new Date(entry.date);
 
-      const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}`;
 
       if (!pricesPerMonth[monthYear]) {
         pricesPerMonth[monthYear] = [];
@@ -385,7 +408,8 @@ function calculateAvgPricePerMonth(product, allProducts) {
     const avgPricePerMonth = {};
 
     for (const [monthYear, prices] of Object.entries(pricesPerMonth)) {
-      const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+      const averagePrice =
+        prices.reduce((sum, price) => sum + price, 0) / prices.length;
       avgPricePerMonth[monthYear] = averagePrice.toFixed(2); // Adjust decimal places if needed
     }
 
@@ -396,9 +420,7 @@ function calculateAvgPricePerMonth(product, allProducts) {
   }
 }
 
-
-
-app.use('/api/v1', api);
+app.use("/api/v1", api);
 
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
