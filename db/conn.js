@@ -1,8 +1,9 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const { MongoClient } = require('mongodb');
+const { MongoClient } = require("mongodb");
 
-const Db = process.env.API_URI || process.env.ATLAS_URI;
+const Db = process.env.ATLAS_URI;
+// process.env.API_URI ||
 const client = new MongoClient(Db, {
   // useNewUrlParser: true,
   // useUnifiedTopology: true,
@@ -18,9 +19,9 @@ module.exports = {
       console.error(e);
     }
 
-    _db = client.db('foodBasket');
+    _db = client.db("foodBasket");
 
-    return (_db !== undefined);
+    return _db !== undefined;
   },
   getDb() {
     return _db;
