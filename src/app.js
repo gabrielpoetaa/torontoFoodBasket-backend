@@ -27,7 +27,7 @@ app.use((err, req, res, next) => {
 
 app.get("/", async (req, res) => {
   try {
-    const db_connect = dbo.getDb();
+    const db_connect = await dbo.getDb();
     if (!db_connect) {
       throw new Error("Database connection not established");
     }
@@ -157,7 +157,7 @@ app.get("/details/:title", async (req, res) => {
       });
     }
 
-    const db_connect = dbo.getDb();
+    const db_connect = await dbo.getDb();
     if (!db_connect) {
       throw new Error("Database connection not established");
     }
@@ -266,7 +266,7 @@ app.get("/details/:title", async (req, res) => {
 
 app.get("/record-count", async (req, res) => {
   try {
-    const db_connect = dbo.getDb();
+    const db_connect = await dbo.getDb();
     if (!db_connect) {
       throw new Error("Database connection not established");
     }
@@ -361,7 +361,7 @@ app.get("/price/:title", async (req, res) => {
       });
     }
 
-    const db_connect = dbo.getDb();
+    const db_connect = await dbo.getDb();
     if (!db_connect) {
       console.log("4. Error: Database connection not established");
       throw new Error("Database connection not established");

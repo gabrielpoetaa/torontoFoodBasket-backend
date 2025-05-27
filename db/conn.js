@@ -16,24 +16,44 @@ if (!Db) {
   process.exit(1);
 }
 
-const client = new MongoClient(Db);
+let cachedClient = null;
+let cachedDb = null;
 
-let _db;
+async function connectToDatabase() {
+  // If the database connection is cached, use it instead of creating a new connection
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  try {
+    console.log("Attempting to connect to MongoDB...");
+    const client = await MongoClient.connect(process.env.API_URI);
+    console.log("Successfully connected to MongoDB.");
+    
+    const db = client.db("foodBasket");
+    console.log("Connected to database: foodBasket");
+
+    // Test the connection
+    await db.command({ ping: 1 });
+    console.log("Database connection test successful");
+
+    // Cache the client and database connection
+    cachedClient = client;
+    cachedDb = db;
+
+    return db;
+  } catch (e) {
+    console.error("Error connecting to MongoDB:", e);
+    throw e;
+  }
+}
 
 module.exports = {
-  async connectToServer() {
-    try {
-      console.log("Attempting to connect to MongoDB...");
-      await client.connect();
-      console.log("Successfully connected to MongoDB.");
-      _db = client.db("foodBasket");
-      return true;
-    } catch (e) {
-      console.error("Error connecting to MongoDB:", e);
-      return false;
+  connectToDatabase,
+  getDb: async function() {
+    if (!cachedDb) {
+      cachedDb = await connectToDatabase();
     }
-  },
-  getDb() {
-    return _db;
-  },
+    return cachedDb;
+  }
 };
