@@ -2,12 +2,8 @@ const express = require("express");
 const morgan = require("morgan");
 const helmet = require("helmet");
 const cors = require("cors");
-
-const recordRoutes = express.Router();
 const { ObjectId } = require("mongodb");
 const dbo = require("../db/conn");
-
-require("dotenv").config();
 
 const middlewares = require("./middlewares");
 const api = require("./api");
@@ -20,20 +16,12 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-async function connectToDB() {
-  const dbo = require("../db/conn");
-
-  // perform a database connection when server starts
-  await dbo.connectToServer((err) => {
-    if (err) console.error(err);
-  });
-  console.log(`Server is running on port: ${port}`);
-}
-
 app.get("/", async (req, res) => {
   try {
-    await connectToDB();
-    const db_connect = dbo.getDb("foodbasket");
+    const db_connect = dbo.getDb();
+    if (!db_connect) {
+      throw new Error("Database connection not established");
+    }
 
     // const projection = { title: 1, _id: 0, price: 1 };
 
@@ -111,8 +99,8 @@ app.get("/", async (req, res) => {
 
     // Order result alphabetically
     combinedResults.sort((a, b) => {
-      const titleA = a.title.toUpperCase();
-      const titleB = b.title.toUpperCase();
+      const titleA = (a?.title || '').toUpperCase();
+      const titleB = (b?.title || '').toUpperCase();
 
       if (titleA < titleB) {
         return -1;
@@ -127,6 +115,7 @@ app.get("/", async (req, res) => {
     const uniqueNames = {};
 
     const filteredArray = combinedResults.filter((obj) => {
+      if (!obj?.title) return false; // Skip items without titles
       if (!uniqueNames[obj.title]) {
         uniqueNames[obj.title] = true;
         return true;
@@ -146,8 +135,11 @@ app.get("/", async (req, res) => {
 
 app.get("/details/:title", async (req, res) => {
   try {
-    await connectToDB();
-    const db_connect = dbo.getDb("foodbasket");
+    const db_connect = dbo.getDb();
+    if (!db_connect) {
+      throw new Error("Database connection not established");
+    }
+
     const collectionNames = [
       "meatdepartments",
       "bakerydepartments",
@@ -248,8 +240,11 @@ app.get("/details/:title", async (req, res) => {
 
 app.get("/record-count", async (req, res) => {
   try {
-    await connectToDB();
-    const db_connect = dbo.getDb("foodbasket");
+    const db_connect = dbo.getDb();
+    if (!db_connect) {
+      throw new Error("Database connection not established");
+    }
+
     const collectionNames = [
       "meatdepartments",
       "bakerydepartments",
@@ -327,7 +322,11 @@ app.get("/record-count", async (req, res) => {
 
 app.get("/price/:title", async (req, res) => {
   try {
-    const db_connect = dbo.getDb("foodbasket");
+    const db_connect = dbo.getDb();
+    if (!db_connect) {
+      throw new Error("Database connection not established");
+    }
+
     const allDepartments = [
       "meatdepartments",
       "bakerydepartments",
