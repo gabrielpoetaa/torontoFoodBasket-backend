@@ -9,9 +9,6 @@ const dbo = require("../db/conn");
 
 require("dotenv").config();
 
-const middlewares = require("./middlewares");
-const api = require("./api");
-
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -520,10 +517,5 @@ app.get("/dashboard/:title", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
-app.use("/api/v1", api);
-
-app.use(middlewares.notFound);
-app.use(middlewares.errorHandler);
 
 module.exports = app;
