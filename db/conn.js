@@ -2,11 +2,15 @@ require("dotenv").config();
 
 const { MongoClient } = require("mongodb");
 
-const Db = process.env.API_URI || process.env.ATLAS_URI;
+const Db = process.env.ATLAS_URI;
 const client = new MongoClient(Db, {
   // useNewUrlParser: true,
   // useUnifiedTopology: true,
 });
+
+if (!process.env.ATLAS_URI) {
+  throw new Error("ATLAS_URI environment variable is not set");
+}
 
 let _db;
 
