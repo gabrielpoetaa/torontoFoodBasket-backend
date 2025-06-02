@@ -33,7 +33,7 @@ async function connectToDB() {
 app.get("/", async (req, res) => {
   try {
     await connectToDB();
-    const db_connect = dbo.getDb("foodbasket");
+    const db_connect = dbo.getDb("foodBasket");
 
     // const projection = { title: 1, _id: 0, price: 1 };
 
@@ -111,6 +111,7 @@ app.get("/", async (req, res) => {
 
     // Order result alphabetically
     combinedResults.sort((a, b) => {
+      if (!a.title || !b.title) return 0;
       const titleA = a.title.toUpperCase();
       const titleB = b.title.toUpperCase();
 
@@ -127,6 +128,7 @@ app.get("/", async (req, res) => {
     const uniqueNames = {};
 
     const filteredArray = combinedResults.filter((obj) => {
+      if (!obj.title) return false; // Skip documents without title
       if (!uniqueNames[obj.title]) {
         uniqueNames[obj.title] = true;
         return true;
@@ -134,9 +136,6 @@ app.get("/", async (req, res) => {
       return false;
     });
 
-    // console.log(filteredArray);
-    console.log(`${filteredArray.length} products in the basket`);
-    console.log("Sending response:", filteredArray);
     res.json(filteredArray);
   } catch (error) {
     console.error("Error querying collections:", error);
@@ -215,7 +214,10 @@ app.get("/details/:title", async (req, res) => {
     }
 
     // Order result alphabetically
-    combinedResults.sort((a, b) => a.title.localeCompare(b.title));
+    combinedResults.sort((a, b) => {
+      if (!a.title || !b.title) return 0;
+      return a.title.localeCompare(b.title);
+    });
 
     // Remove duplicated results
     const uniqueNames = {};
@@ -227,18 +229,16 @@ app.get("/details/:title", async (req, res) => {
       return false;
     });
 
-    console.log(`${filteredArray.length} products in the basket`);
-
     // IT QUERIES ALL DOCUMENTS, BUT RENDERS ONLY THE FIRST ONE
     const { title } = req.params;
-    const selectedDocument = filteredArray.find((doc) => doc.title === title);
+    const selectedDocument = filteredArray.find(
+      (doc) => doc.title && doc.title.toLowerCase() === title.toLowerCase()
+    );
 
     if (!selectedDocument) {
       res.status(404).json({ error: "Document not found" });
     } else {
       res.json(selectedDocument);
-      console.log("User selected: ");
-      console.log(selectedDocument);
     }
   } catch (error) {
     console.error("Error querying collections:", error);
@@ -249,7 +249,7 @@ app.get("/details/:title", async (req, res) => {
 app.get("/record-count", async (req, res) => {
   try {
     await connectToDB();
-    const db_connect = dbo.getDb("foodbasket");
+    const db_connect = dbo.getDb("foodBasket");
     const collectionNames = [
       "meatdepartments",
       "bakerydepartments",
@@ -327,7 +327,8 @@ app.get("/record-count", async (req, res) => {
 
 app.get("/price/:title", async (req, res) => {
   try {
-    const db_connect = dbo.getDb("foodbasket");
+    await connectToDB();
+    const db_connect = dbo.getDb("foodBasket");
     const allDepartments = [
       "meatdepartments",
       "bakerydepartments",
@@ -342,19 +343,19 @@ app.get("/price/:title", async (req, res) => {
     for (const department of allDepartments) {
       const collection = db_connect.collection(department);
       const departmentResults = await collection
-        .find({ title: req.params.title })
+        .find({
+          title: {
+            $regex: new RegExp(`^${req.params.title}$`, "i"),
+          },
+        })
         .toArray();
       combinedResults = [...combinedResults, ...departmentResults];
     }
 
-    console.log(
-      "Total number of documents for title " +
-        req.params.title +
-        ": " +
-        combinedResults.length
-    );
-
-    combinedResults.sort((a, b) => a.title.localeCompare(b.title));
+    combinedResults.sort((a, b) => {
+      if (!a.title || !b.title) return 0;
+      return a.title.localeCompare(b.title);
+    });
 
     const uniqueNames = {};
     const filteredArray = combinedResults.filter((obj) => {
@@ -419,6 +420,106 @@ function calculateAvgPricePerMonth(product, allProducts) {
     return {};
   }
 }
+
+// Add endpoint to get all documents from all collections
+app.get("/dashboard/all", async (req, res) => {
+  try {
+    await connectToDB();
+    const db_connect = dbo.getDb("foodBasket");
+    const collections = [
+      "meatdepartments",
+      "bakerydepartments",
+      "producedepartments",
+      "cannedanddrydepartments",
+      "frozenfooddepartments",
+      "refrigeratedfoodsections",
+    ];
+
+    let allDocuments = [];
+
+    // Get all documents from each collection
+    for (const collectionName of collections) {
+      const collection = db_connect.collection(collectionName);
+      const documents = await collection
+        .find({
+          title: { $exists: true, $ne: null },
+          date: { $exists: true, $ne: null },
+          price: { $exists: true, $ne: null },
+          pricePer100g: { $exists: true, $ne: null },
+          pricePerGram: { $exists: true, $ne: null },
+        })
+        .sort({ date: -1 })
+        .toArray();
+
+      // Additional validation to ensure all required fields are present and valid
+      const validDocuments = documents.filter((doc) => {
+        return (
+          doc.title &&
+          typeof doc.title === "string" &&
+          doc.title.trim() !== "" &&
+          doc.date &&
+          doc.price !== undefined &&
+          doc.pricePer100g !== undefined &&
+          doc.pricePerGram !== undefined
+        );
+      });
+
+      allDocuments = [...allDocuments, ...validDocuments];
+    }
+
+    // Sort all documents by date
+    allDocuments.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.json(allDocuments);
+  } catch (error) {
+    console.error("Error retrieving documents:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/dashboard/:title", async (req, res) => {
+  try {
+    // Special case for 'all'
+    if (req.params.title === "all") {
+      return res.status(404).json({ error: "Endpoint not found" });
+    }
+
+    await connectToDB();
+    const db_connect = dbo.getDb("foodBasket");
+    const allDepartments = [
+      "meatdepartments",
+      "bakerydepartments",
+      "producedepartments",
+      "cannedanddrydepartments",
+      "frozenfooddepartments",
+      "refrigeratedfoodsections",
+    ];
+
+    let combinedResults = [];
+
+    for (const department of allDepartments) {
+      const collection = db_connect.collection(department);
+      const departmentResults = await collection
+        .find({
+          title: {
+            $regex: new RegExp(`^${req.params.title}$`, "i"),
+          },
+        })
+        .sort({ date: -1 }) // Sort by date descending (most recent first)
+        .toArray();
+
+      combinedResults = [...combinedResults, ...departmentResults];
+    }
+
+    // Sort all results by date
+    combinedResults.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.json(combinedResults);
+  } catch (error) {
+    console.error("Error querying collections:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 app.use("/api/v1", api);
 
